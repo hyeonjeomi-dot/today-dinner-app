@@ -1,14 +1,15 @@
 "use client";
+
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import BottomNav from "../../components/BottomNav";
 
 
-export default function AddPage() {
+function AddPageContent() {
   const searchParams = useSearchParams();
 const editId = searchParams.get("id");
 console.log("editId:", editId);
@@ -296,3 +297,10 @@ const buttonStyle = {
   fontSize: "16px",
 };
 
+export default function AddPage() {
+  return (
+    <Suspense fallback={<div>불러오는 중...</div>}>
+      <AddPageContent />
+    </Suspense>
+  );
+}
