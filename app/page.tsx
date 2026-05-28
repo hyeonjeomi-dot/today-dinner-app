@@ -7,13 +7,21 @@ export const revalidate = 0
 
 export default async function HomePage() {
  
-  const today = new Date().toISOString().slice(0, 10)
+  const today = new Date(Date.now() + 9 * 60 * 60 * 1000)
+  .toISOString()
+  .slice(0, 10)
 
   const { data: choices } = await supabase
   .from('dinner_choices')
   .select('*')
   .eq('date', today)
   .order('id', { ascending: false })
+
+  const { data: recentReviews } = await supabase
+  .from("menu_reviews")
+  .select("*")
+  .order("created_at", { ascending: false })
+  .limit(4);
 
   const { data: fridgeItems } = await supabase
     .from('fridge_items')
@@ -305,7 +313,107 @@ export default async function HomePage() {
           </div>
         )}
       </section>
+<section
+  style={{
+    marginTop: "24px",
+    background: "white",
+    borderRadius: "24px",
+    padding: "20px",
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: "16px",
+    }}
+  >
+    <h2 style={{ margin: 0 }}>✍️ 최근 후기</h2>
+  </div>
 
+  {!recentReviews || recentReviews.length === 0 ? (
+    <p style={{ color: "#666", margin: 0 }}>
+      아직 작성된 후기가 없어요.
+    </p>
+  ) : (
+    <div
+      style={{
+        display: "grid",
+        gap: "10px",
+      }}
+    >
+      {recentReviews.map((review) => (
+  <Link
+    key={review.id}
+    href={`/menu/${review.menu_id}`}
+    style={{
+      textDecoration: "none",
+      color: "inherit",
+    }}
+  >
+    <div
+      style={{
+        padding: "14px 16px",
+        borderRadius: "16px",
+        background: "#fafafa",
+        border: "1px solid #eee",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "10px",
+      }}
+    >
+      <div
+        style={{
+          minWidth: "72px",
+          fontSize: "11px",
+          color: "#999",
+          fontWeight: "bold",
+        }}
+      >
+        {review.review_date.slice(5)}
+      </div>
+
+      <div
+        style={{
+          flex: 1,
+          fontWeight: "bold",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {review.menu_name}
+      </div>
+
+      <div
+        style={{
+          fontSize: "13px",
+          flexShrink: 0,
+        }}
+      >
+        {"⭐".repeat(review.rating)}
+      </div>
+
+      <div
+        style={{
+          fontSize: "12px",
+          color: "#666",
+          fontWeight: "bold",
+          minWidth: "38px",
+          textAlign: "right",
+          flexShrink: 0,
+        }}
+      >
+        {review.person}
+      </div>
+    </div>
+  </Link>
+))}
+    </div>
+  )}
+</section>
       <BottomNav />
     </main>
   )

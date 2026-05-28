@@ -200,15 +200,20 @@ const [sortType, setSortType] = useState<'name' | 'expire'>('expire')
     if (!date) return '기한 없음'
 
     const today = new Date()
-    const expire = new Date(date)
+const expire = new Date(date)
 
-    const diff = Math.ceil(
-      (expire.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    )
+today.setHours(0, 0, 0, 0)
+expire.setHours(0, 0, 0, 0)
 
-    if (diff < 0) return '만료'
-    if (diff === 0) return 'D-Day'
-    return `D-${diff}`
+const diff = Math.floor(
+  (expire.getTime() - today.getTime()) /
+    (1000 * 60 * 60 * 24)
+)
+
+if (diff < 0) return '만료'
+if (diff === 0) return 'D-Day'
+
+return `D-${diff}`
   }
 
   return (

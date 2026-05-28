@@ -17,7 +17,7 @@ export default function BottomNav() {
           borderTop: "1px solid #f0f0f0",
           borderRadius: "24px 24px 0 0",
           display: "grid",
-          gridTemplateColumns: "repeat(6, 1fr)",
+          gridTemplateColumns: "repeat(7, 1fr)",
           padding: "10px 6px",
           boxSizing: "border-box",
           boxShadow: "0 -8px 24px rgba(0,0,0,0.08)",
@@ -29,6 +29,7 @@ export default function BottomNav() {
         <NavItem href="/calendar" icon="📅" label="달력" />
         <NavItem href="/fridge" icon="🧊" label="냉장고" />
         <NavItem href="/recommend" icon="🍳" label="추천" />
+        <NavItem href="/review" icon="✍️" label="후기" />
         <NavItem href="/add" icon="➕" label="추가" />
       </nav>
 

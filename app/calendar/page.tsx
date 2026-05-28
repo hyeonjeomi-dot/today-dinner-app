@@ -5,9 +5,10 @@ import BottomNav from '../../components/BottomNav'
 export default async function CalendarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ month?: string }>
+  searchParams: Promise<{ month?: string; date?: string }>
 }) {
   const params = await searchParams
+  const selectedDate = params.date || ''
 
   const today = new Date()
 
@@ -46,6 +47,13 @@ export default async function CalendarPage({
     .eq('person', '현정')
     .order('date', { ascending: true })
 
+    const { data: reviews } = await supabase
+  .from('menu_reviews')
+  .select('*')
+  .gte('review_date', startDate)
+  .lte('review_date', endDate)
+  .order('review_date', { ascending: true })
+
   const menuCount: Record<string, number> = {}
 
   choices?.forEach((choice) => {
@@ -63,6 +71,13 @@ export default async function CalendarPage({
     const day = i + 1
     return `${monthText}-${String(day).padStart(2, '0')}`
   })
+  const selectedReviews =
+  reviews?.filter((review) => review.review_date === selectedDate) || []
+
+const selectedReviewMenuId = selectedReviews[0]?.menu_id
+const selectedReviewMenuName = selectedReviews[0]?.menu_name
+
+  
 
   return (
     <main
@@ -230,11 +245,11 @@ export default async function CalendarPage({
               </div>
             )
 
-            if (dayChoice?.menu_id) {
-              return (
-                <Link
-                  key={date}
-                  href={`/menu/${dayChoice.menu_id}`}
+           if (dayChoice?.menu_id) {
+  return (
+    <Link
+      key={date}
+      href={`/calendar?month=${currentMonth}&date=${date}`}
                   style={{
                     textDecoration: 'none',
                     color: 'inherit',
@@ -252,7 +267,74 @@ export default async function CalendarPage({
           })}
         </div>
       </section>
+{selectedDate && (
+  <section
+    style={{
+      background: 'white',
+      padding: '18px',
+      borderRadius: '20px',
+      marginTop: '20px',
+      border: '1px solid #eee',
+    }}
+  >
+    <h2
+  style={{
+    marginTop: 0,
+    marginBottom: '18px',
+  }}
+>
+  ✍️ 이날의 리뷰
+</h2>
 
+    {selectedReviews.length === 0 ? (
+      <p style={{ color: '#666', margin: 0 }}>
+        이날 작성된 리뷰가 없어요.
+      </p>
+    ) : (
+      <>
+        <p
+          style={{
+            margin: '0 0 12px',
+            color: '#f28c00',
+            fontWeight: 'bold',
+          }}
+        >
+          😋 {selectedReviewMenuName}
+        </p>
+
+        <div style={{ display: 'grid', gap: '8px' }}>
+          {selectedReviews.map((review) => (
+            <div
+              key={review.id}
+              style={{
+                padding: '12px',
+                borderRadius: '14px',
+                background: '#fafafa',
+                border: '1px solid #eee',
+              }}
+            >
+              <strong>{review.person}: </strong>
+              <span>{review.content}</span>
+            </div>
+          ))}
+        </div>
+
+        <Link
+          href={`/menu/${selectedReviewMenuId}`}
+          style={{
+            display: 'block',
+            marginTop: '14px',
+            color: '#f28c00',
+            fontWeight: 'bold',
+            textDecoration: 'none',
+          }}
+        >
+          레시피 바로가기 →
+        </Link>
+      </>
+    )}
+  </section>
+)}
       <BottomNav />
     </main>
   )

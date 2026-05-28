@@ -21,6 +21,7 @@ export default function MenuDetailPage() {
   const id = params.id as string;
 
   const [menu, setMenu] = useState<Menu | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -36,6 +37,14 @@ export default function MenuDetailPage() {
 
       if (data) {
         setMenu(data);
+
+        const { data: reviewData } = await supabase
+  .from("menu_reviews")
+  .select("*")
+  .eq("menu_id", Number(id))
+  .order("created_at", { ascending: false });
+
+setReviews(reviewData || []);
       }
     };
 
@@ -47,7 +56,9 @@ export default function MenuDetailPage() {
   const handleSelectDinner = async (person: "현정" | "상혁") => {
     if (!menu) return;
 
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date(Date.now() + 9 * 60 * 60 * 1000)
+  .toISOString()
+  .split("T")[0];
 
     const { data: existingChoices, error: findError } = await supabase
       .from("dinner_choices")
@@ -332,7 +343,69 @@ export default function MenuDetailPage() {
           </div>
         </div>
       </div>
+<section
+  style={{
+    margin: "24px 16px 0",
+    background: "white",
+    padding: "20px",
+    borderRadius: "24px",
+  }}
+>
+  <h2 style={{ marginTop: 0 }}>⭐ 참고 후기</h2>
 
+  {reviews.length === 0 ? (
+    <p style={{ color: "#666", margin: 0 }}>
+      아직 작성된 후기가 없어요.
+    </p>
+  ) : (
+    <div style={{ display: "grid", gap: "10px" }}>
+      {reviews.map((review) => (
+        <div
+          key={review.id}
+          style={{
+            padding: "14px",
+            borderRadius: "16px",
+            background: "#fafafa",
+            border: "1px solid #eee",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <strong>{review.person}</strong>
+            <span style={{ fontSize: "13px" }}>
+              {"⭐".repeat(review.rating)}
+            </span>
+          </div>
+
+          <p
+            style={{
+              margin: "8px 0 0",
+              color: "#555",
+              lineHeight: 1.5,
+            }}
+          >
+            {review.content}
+          </p>
+
+          <p
+            style={{
+              margin: "8px 0 0",
+              fontSize: "12px",
+              color: "#999",
+            }}
+          >
+            {review.review_date}
+          </p>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
       <BottomNav />
     </main>
   );
