@@ -1,9 +1,9 @@
-import Cropper from "react-easy-crop";
 "use client";
 
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import Cropper from "react-easy-crop";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
