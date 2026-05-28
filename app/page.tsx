@@ -1,8 +1,18 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import BottomNav from '../components/BottomNav'
 
 export default async function HomePage() {
+  useEffect(() => {
+  const auth = localStorage.getItem("dinner-auth");
+
+  if (auth !== "yes") {
+    window.location.href = "/login";
+  }
+}, []);
   const today = new Date().toISOString().slice(0, 10)
 
   const { data: choices } = await supabase
