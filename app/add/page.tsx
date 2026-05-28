@@ -1,10 +1,12 @@
 "use client";
+export const dynamic = "force-dynamic";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabase";
 import BottomNav from "../../components/BottomNav";
-import Link from "next/link";
+
 
 export default function AddPage() {
   const searchParams = useSearchParams();
