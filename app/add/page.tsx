@@ -46,16 +46,18 @@ console.log("editId:", editId);
     let imageUrl = "";
 
     if (imageFile) {
-      const fileName = `${Date.now()}-${imageFile.name}`;
+      const fileExt = imageFile.name.split(".").pop() || "jpg";
+const fileName = `${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("menu-images")
         .upload(fileName, imageFile);
 
       if (uploadError) {
-        alert("이미지 업로드 실패 😢");
-        return;
-      }
+  alert(`이미지 업로드 실패 😢\n${uploadError.message}`);
+  console.log(uploadError);
+  return;
+}
 
       const { data } = supabase.storage
         .from("menu-images")
