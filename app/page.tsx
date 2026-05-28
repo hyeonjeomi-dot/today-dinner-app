@@ -2,14 +2,18 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import BottomNav from '../components/BottomNav'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function HomePage() {
  
   const today = new Date().toISOString().slice(0, 10)
 
   const { data: choices } = await supabase
-    .from('dinner_choices')
-    .select('*')
-    .eq('date', today)
+  .from('dinner_choices')
+  .select('*')
+  .eq('date', today)
+  .order('id', { ascending: false })
 
   const { data: fridgeItems } = await supabase
     .from('fridge_items')

@@ -1,3 +1,4 @@
+import Cropper from "react-easy-crop";
 "use client";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +20,11 @@ console.log("editId:", editId);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+const [zoom, setZoom] = useState(1);
+const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+const [previewImage, setPreviewImage] = useState("");
+const [showCropper, setShowCropper] = useState(false);
 
   useEffect(() => {
   const fetchMenu = async () => {
@@ -41,7 +47,58 @@ console.log("editId:", editId);
 
   fetchMenu();
 }, [editId]);
+const onCropComplete = (_: any, croppedAreaPixels: any) => {
+  setCroppedAreaPixels(croppedAreaPixels);
+};
 
+const createImage = (url: string): Promise<HTMLImageElement> =>
+  new Promise((resolve, reject) => {
+    const image = new Image();
+    image.src = url;
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+  });
+
+const getCroppedImg = async () => {
+  if (!previewImage || !croppedAreaPixels) return null;
+
+  const image = await createImage(previewImage);
+
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) return null;
+
+  canvas.width = croppedAreaPixels.width;
+  canvas.height = croppedAreaPixels.height;
+
+  ctx.drawImage(
+    image,
+    croppedAreaPixels.x,
+    croppedAreaPixels.y,
+    croppedAreaPixels.width,
+    croppedAreaPixels.height,
+    0,
+    0,
+    croppedAreaPixels.width,
+    croppedAreaPixels.height
+  );
+
+  return new Promise<File | null>((resolve) => {
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        resolve(null);
+        return;
+      }
+
+      resolve(
+        new File([blob], "cropped.jpg", {
+          type: "image/jpeg",
+        })
+      );
+    }, "image/jpeg");
+  });
+};
   const handleAddMenu = async () => {
     let imageUrl = "";
 
@@ -191,11 +248,14 @@ if (editId) {
     type="file"
     accept="image/*"
     style={{ display: "none" }}
-    onChange={(e) => {
-      if (e.target.files && e.target.files[0]) {
-        setImageFile(e.target.files[0]);
-      }
-    }}
+   onChange={(e) => {
+  if (e.target.files && e.target.files[0]) {
+    const file = e.target.files[0];
+
+    setPreviewImage(URL.createObjectURL(file));
+    setShowCropper(true);
+  }
+}}
   />
 
   <div>
@@ -233,6 +293,75 @@ if (editId) {
           {editId ? "메뉴 수정하기" : "메뉴 등록하기"}
         </button>
       </div>
+      {showCropper && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,0.8)",
+      zIndex: 9999,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      padding: "20px",
+    }}
+  >
+    <div
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "400px",
+        background: "#222",
+        borderRadius: "20px",
+        overflow: "hidden",
+      }}
+    >
+      <Cropper
+        image={previewImage}
+        crop={crop}
+        zoom={zoom}
+        aspect={1}
+        onCropChange={setCrop}
+        onZoomChange={setZoom}
+        onCropComplete={onCropComplete}
+      />
+    </div>
+
+    <input
+      type="range"
+      min={1}
+      max={3}
+      step={0.1}
+      value={zoom}
+      onChange={(e) => setZoom(Number(e.target.value))}
+      style={{ marginTop: "20px" }}
+    />
+
+    <button
+      onClick={async () => {
+        const cropped = await getCroppedImg();
+
+        if (cropped) {
+          setImageFile(cropped);
+        }
+
+        setShowCropper(false);
+      }}
+      style={{
+        marginTop: "20px",
+        padding: "16px",
+        borderRadius: "16px",
+        border: "none",
+        background: "orange",
+        color: "white",
+        fontWeight: "bold",
+        fontSize: "16px",
+      }}
+    >
+      ✂️ 자르기 완료
+    </button>
+  </div>
+)}
       <BottomNav />
     </main>
   );
