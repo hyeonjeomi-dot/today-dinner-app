@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { supabase } from "../../../lib/supabase";
+import BottomNav from "../../../components/BottomNav";
 
 type Menu = {
   id: number;
@@ -48,7 +49,43 @@ export default function MenuDetailPage() {
 
     const today = new Date().toISOString().split("T")[0];
 
-    const { error } = await supabase.from("dinner_choices").insert([
+    const { data: existingChoices, error: findError } = await supabase
+      .from("dinner_choices")
+      .select("*")
+      .eq("date", today)
+      .eq("person", person)
+      .order("id", { ascending: false })
+      .limit(1);
+
+    const existingChoice = existingChoices?.[0];
+
+    if (findError) {
+      alert("기존 선택 확인 실패 😢");
+      console.log(findError);
+      return;
+    }
+
+    if (existingChoice) {
+      const { error: updateError } = await supabase
+        .from("dinner_choices")
+        .update({
+          user_name: person,
+          menu_id: menu.id,
+          menu_name: menu.name,
+        })
+        .eq("id", existingChoice.id);
+
+      if (updateError) {
+        alert("선택 변경 실패 😢");
+        console.log(updateError);
+        return;
+      }
+
+      alert(`${person}이의 저녁 선택을 변경했어요 🍽`);
+      return;
+    }
+
+    const { error: insertError } = await supabase.from("dinner_choices").insert([
       {
         user_name: person,
         person: person,
@@ -58,16 +95,52 @@ export default function MenuDetailPage() {
       },
     ]);
 
-    if (error) {
+    if (insertError) {
       alert("선택 저장 실패 😢");
-      console.log(error);
+      console.log(insertError);
     } else {
       alert(`${person}이의 오늘 저녁 선택 완료 🍽`);
     }
   };
 
+
+  const handleDelete = async () => {
+  const ok = confirm("정말 삭제할까요?");
+
+  if (!ok) return;
+
+  const { error } = await supabase
+    .from("menus")
+    .delete()
+    .eq("id", menu?.id);
+
+  if (error) {
+    alert("삭제 실패 😢");
+    console.log(error);
+    return;
+  }
+
+  alert("메뉴 삭제 완료 🍽");
+
+  window.location.href = "/menu";
+};
   if (!menu) {
-    return <p>불러오는 중...</p>;
+    return (
+      <main
+        style={{
+          padding: "20px",
+          maxWidth: "520px",
+          width: "100%",
+          boxSizing: "border-box",
+          margin: "0 auto",
+          background: "#fffaf3",
+          minHeight: "100vh",
+          fontFamily: "sans-serif",
+        }}
+      >
+        <p>불러오는 중...</p>
+      </main>
+    );
   }
 
   return (
@@ -77,86 +150,221 @@ export default function MenuDetailPage() {
         width: "100%",
         boxSizing: "border-box",
         margin: "0 auto",
-        background: "#fffaf3",
+        background: "linear-gradient(180deg, #fff3df 0%, #fffaf3 45%)",
         minHeight: "100vh",
         fontFamily: "sans-serif",
-        paddingBottom: "30px",
+        paddingBottom: "90px",
       }}
     >
-      <img
-        src={menu.image_url || "https://placehold.co/400x300"}
-        alt={menu.name}
+      <div
         style={{
-          width: "100%",
-          height: "280px",
-          objectFit: "cover",
+          padding: "16px 18px 10px",
         }}
-      />
+      >
+        <Link
+          href="/menu"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            textDecoration: "none",
+            color: "#333",
+            fontWeight: "bold",
+            background: "white",
+            padding: "10px 14px",
+            borderRadius: "999px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+          }}
+        >
+          ← 메뉴판으로
+        </Link>
+      </div>
 
-      <div style={{ padding: "20px" }}>
-        <Link href="/menu">← 메뉴판으로</Link>
+      <div
+        style={{
+          margin: "0 16px",
+          borderRadius: "26px",
+          overflow: "hidden",
+          boxShadow: "0 10px 28px rgba(0,0,0,0.08)",
+          background: "white",
+        }}
+      >
+        <img
+          src={menu.image_url || "https://placehold.co/400x300"}
+          alt={menu.name}
+          style={{
+            width: "100%",
+            height: "290px",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
 
-        <h1 style={{ fontSize: "30px", marginTop: "20px" }}>
-          {menu.name}
-        </h1>
-
-        <p>🏷 {menu.category}</p>
-
-        <section style={boxStyle}>
-          <h2>🥬 재료</h2>
-          <p>{menu.ingredients}</p>
-        </section>
-
-        <section style={boxStyle}>
-          <h2>📝 설명</h2>
-          <p>{menu.description}</p>
-        </section>
-
-        {menu.youtube_url && (
-          <a
-            href={menu.youtube_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={youtubeStyle}
+        <div style={{ padding: "20px" }}>
+          <p
+            style={{
+              margin: 0,
+              color: "#f28c00",
+              fontWeight: "bold",
+              fontSize: "13px",
+            }}
           >
-            🎥 유튜브 레시피 보기
-          </a>
-        )}
+            {menu.category || "오늘의 메뉴"}
+          </p>
 
-        <div style={{ display: "grid", gap: "10px", marginTop: "20px" }}>
-          <button
-            onClick={() => handleSelectDinner("현정")}
-            style={buttonStyle}
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: "900",
+              margin: "6px 0 0",
+              letterSpacing: "-1px",
+            }}
           >
-            현정이 선택
-          </button>
+            {menu.name}
+          </h1>
 
-          <button
-            onClick={() => handleSelectDinner("상혁")}
-            style={secondButtonStyle}
+          <div
+  style={{
+    display: "flex",
+    gap: "10px",
+    marginTop: "14px",
+  }}
+>
+  <Link
+    href={`/add?id=${menu.id}`}
+    style={{
+      flex: 1,
+      textDecoration: "none",
+      background: "#111",
+      color: "white",
+      padding: "12px 14px",
+      borderRadius: "14px",
+      fontWeight: "bold",
+      fontSize: "14px",
+      textAlign: "center",
+    }}
+  >
+    ✏️ 메뉴 수정
+  </Link>
+
+  <button
+    onClick={handleDelete}
+    style={{
+      flex: 1,
+      border: "none",
+      background: "#ff4d4f",
+      color: "white",
+      padding: "12px 14px",
+      borderRadius: "14px",
+      fontWeight: "bold",
+      fontSize: "14px",
+      cursor: "pointer",
+    }}
+  >
+    🗑 삭제
+  </button>
+</div>
+
+          <div
+            style={{
+              display: "grid",
+              gap: "14px",
+              marginTop: "20px",
+            }}
           >
-            상혁이 선택
-          </button>
+            <section style={boxStyle}>
+              <h2 style={sectionTitleStyle}>🥬 재료</h2>
+              <p style={contentTextStyle}>{menu.ingredients || "등록된 재료가 없어요."}</p>
+            </section>
+
+            <section style={boxStyle}>
+              <h2 style={sectionTitleStyle}>📝 설명</h2>
+              <p style={contentTextStyle}>{menu.description || "등록된 설명이 없어요."}</p>
+            </section>
+          </div>
+
+          {menu.youtube_url && (
+            <a
+              href={menu.youtube_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={youtubeStyle}
+            >
+              🎥 유튜브 레시피 보기
+            </a>
+          )}
+
+          <div
+            style={{
+              marginTop: "20px",
+              background: "#fff7e6",
+              border: "1px solid #ffe0a3",
+              borderRadius: "22px",
+              padding: "16px",
+            }}
+          >
+            <p
+              style={{
+                margin: "0 0 12px",
+                fontWeight: "bold",
+                color: "#d97706",
+                textAlign: "center",
+              }}
+            >
+              오늘 저녁으로 선택하기
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              <button
+                onClick={() => handleSelectDinner("현정")}
+                style={buttonStyle}
+              >
+                현정이
+              </button>
+
+              <button
+                onClick={() => handleSelectDinner("상혁")}
+                style={secondButtonStyle}
+              >
+                상혁이
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+
+      <BottomNav />
     </main>
   );
 }
 
 const boxStyle = {
-  background: "white",
-  padding: "18px",
-  borderRadius: "20px",
-  marginTop: "18px",
+  background: "#fafafa",
+  padding: "16px",
+  borderRadius: "18px",
+  border: "1px solid #f0f0f0",
+};
+
+const sectionTitleStyle = {
+  margin: 0,
+  fontSize: "18px",
+  fontWeight: "900",
+};
+
+const contentTextStyle = {
+  margin: "10px 0 0",
+  color: "#555",
+  lineHeight: 1.6,
+  whiteSpace: "pre-line" as const,
 };
 
 const youtubeStyle = {
   display: "block",
   textAlign: "center" as const,
-  background: "red",
+  background: "#ff2d2d",
   color: "white",
   padding: "16px",
-  borderRadius: "16px",
+  borderRadius: "18px",
   textDecoration: "none",
   fontWeight: "bold",
   marginTop: "20px",
@@ -164,22 +372,22 @@ const youtubeStyle = {
 
 const buttonStyle = {
   width: "100%",
-  padding: "16px",
+  padding: "15px",
   borderRadius: "16px",
   border: "none",
-  background: "orange",
+  background: "linear-gradient(135deg, #ff9f1c, #ff7a00)",
   color: "white",
-  fontWeight: "bold",
+  fontWeight: "900",
   fontSize: "16px",
 };
 
 const secondButtonStyle = {
   width: "100%",
-  padding: "16px",
+  padding: "15px",
   borderRadius: "16px",
   border: "none",
   background: "#111",
   color: "white",
-  fontWeight: "bold",
+  fontWeight: "900",
   fontSize: "16px",
 };

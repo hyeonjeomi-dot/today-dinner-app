@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
 import BottomNav from "../../components/BottomNav";
 import Link from "next/link";
@@ -12,102 +15,195 @@ type Menu = {
   image_url: string;
 };
 
-export default async function MenuPage() {
-  const { data: menus, error } = await supabase
-    .from("menus")
-    .select("*")
-    .order("id", { ascending: false });
+export default function MenuPage() {
+  const [menus, setMenus] = useState<Menu[]>([]);
+  const [searchText, setSearchText] = useState("");
 
-  if (error) {
-    console.log(error);
-  }
+  useEffect(() => {
+    const fetchMenus = async () => {
+      const { data, error } = await supabase
+        .from("menus")
+        .select("*")
+        .order("id", { ascending: false });
+
+      if (error) {
+        console.log(error);
+      }
+
+      if (data) {
+        setMenus(data);
+      }
+    };
+
+    fetchMenus();
+  }, []);
+
+  const filteredMenus = menus.filter((menu) => {
+    const keyword = searchText.trim().toLowerCase();
+
+    if (!keyword) return true;
+
+    return (
+      menu.name?.toLowerCase().includes(keyword) ||
+      menu.ingredients?.toLowerCase().includes(keyword)
+    );
+  });
 
   return (
-    <main style={{
-      padding: "20px",
-      paddingBottom: "90px",
-      maxWidth: "430px",
-      margin: "0 auto",
-      background: "#fffaf3",
-      minHeight: "100vh",
-      fontFamily: "sans-serif"
-    }}>
-      <h1 style={{ fontSize: "28px", fontWeight: "bold" }}>
-        🍽 메뉴판
+    <main
+      style={{
+        padding: "16px",
+        paddingBottom: "90px",
+        maxWidth: "520px",
+        width: "100%",
+        boxSizing: "border-box",
+        margin: "0 auto",
+        background: "linear-gradient(180deg, #fff3df 0%, #fffaf3 45%)",
+        minHeight: "100vh",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <p
+        style={{
+          margin: 0,
+          color: "#f28c00",
+          fontWeight: "bold",
+          fontSize: "14px",
+        }}
+      >
+        오늘의 저녁 선택
+      </p>
+
+      <h1
+        style={{
+          fontSize: "32px",
+          fontWeight: "900",
+          margin: "6px 0 0",
+        }}
+      >
+        📖 메뉴판
       </h1>
 
+      <p style={{ color: "#777", marginTop: "8px" }}>
+        오늘의 저녁을 선택해보아요.
+      </p>
+
       <input
-        placeholder="먹고 싶은 메뉴 검색"
+        placeholder="메뉴 이름 또는 재료 검색"
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
         style={{
           width: "100%",
           padding: "15px",
-          borderRadius: "15px",
-          border: "1px solid #ddd",
-          marginTop: "20px",
+          borderRadius: "18px",
+          border: "1px solid #eee",
+          marginTop: "18px",
           fontSize: "16px",
-          boxSizing: "border-box"
+          boxSizing: "border-box",
+          background: "white",
+          outline: "none",
         }}
       />
 
-      {menus && menus.length > 0 ? (
-  menus.map((menu: Menu) => (
-    <Link
-  key={menu.id}
-  href={`/menu/${menu.id}`}
-  style={{ textDecoration: "none", color: "black" }}
->
-      <div
-            style={{
-              background: "white",
-              borderRadius: "24px",
-              marginTop: "20px",
-              overflow: "hidden",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.06)"
-            }}
-          >
-            <img
-  src={menu.image_url || "https://placehold.co/400x300"}
-  alt={menu.name}
-  style={{
-    width: "100%",
-    height: "220px",
-    objectFit: "cover"
-  }}
-/>
+      <Link href="/add">
+        <button
+          style={{
+            width: "100%",
+            marginTop: "14px",
+            padding: "16px",
+            borderRadius: "18px",
+            border: "none",
+            background: "linear-gradient(135deg, #ff9f1c, #ff7a00)",
+            color: "white",
+            fontWeight: "900",
+            fontSize: "16px",
+            boxShadow: "0 6px 16px rgba(255, 122, 0, 0.25)",
+          }}
+        >
+          ➕ 새 메뉴 등록하기
+        </button>
+      </Link>
 
-            <div style={{ padding: "18px" }}>
-              <h2 style={{ margin: 0 }}>{menu.name}</h2>
-              <p style={{ color: "#666" }}>{menu.description}</p>
-              <p>🏷 {menu.category}</p>
-              <p>🥬 {menu.ingredients}</p>
-
-              {menu.youtube_url && (
-                <a href={menu.youtube_url} target="_blank" rel="noopener noreferrer">
-                  🎥 유튜브 레시피 보기
-                </a>
-              )}
-
-              <button style={{
-                marginTop: "15px",
-                width: "100%",
-                padding: "15px",
-                borderRadius: "15px",
-                border: "none",
-                background: "orange",
-                color: "white",
-                fontWeight: "bold",
-                fontSize: "16px"
-              }}>
-                오늘 선택하기
-              </button>
-            </div>
-          </div>
-        </Link>
-      ))
+      {filteredMenus.length === 0 ? (
+        <div
+          style={{
+            background: "white",
+            padding: "20px",
+            borderRadius: "22px",
+            marginTop: "24px",
+            textAlign: "center",
+            color: "#666",
+          }}
+        >
+          검색 결과가 없어요.
+        </div>
       ) : (
-        <p style={{ marginTop: "30px" }}>
-          아직 등록된 메뉴가 없어요.
-        </p>
+        <div
+          style={{
+            marginTop: "24px",
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: "14px",
+          }}
+        >
+          {filteredMenus.map((menu) => (
+            <Link
+              key={menu.id}
+              href={`/menu/${menu.id}`}
+              style={{
+                textDecoration: "none",
+                color: "inherit",
+                minWidth: 0,
+              }}
+            >
+              <div
+                style={{
+                  background: "white",
+                  borderRadius: "22px",
+                  overflow: "hidden",
+                  boxShadow: "0 6px 18px rgba(0,0,0,0.06)",
+                  border: "1px solid #f1f1f1",
+                  height: "100%",
+                }}
+              >
+                <img
+                  src={menu.image_url || "https://placehold.co/300x220"}
+                  alt={menu.name}
+                  style={{
+                    width: "100%",
+                    height: "135px",
+                    objectFit: "cover",
+                  }}
+                />
+
+                <div style={{ padding: "13px" }}>
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontSize: "18px",
+                      fontWeight: "900",
+                      lineHeight: 1.25,
+                      wordBreak: "keep-all",
+                    }}
+                  >
+                    {menu.name}
+                  </h2>
+
+                  <p
+                    style={{
+                      margin: "8px 0 0",
+                      fontSize: "12px",
+                      color: "#f28c00",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    자세히 보기 →
+                  </p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
       )}
 
       <BottomNav />
