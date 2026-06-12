@@ -167,6 +167,17 @@ if (editId) {
   alert("저장 실패 😢");
   console.log(error);
 } else {
+  await fetch("/api/discord", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    message: editId
+      ? `✏️ 메뉴 수정\n🍽 ${name}`
+      : `➕ 새 메뉴 등록\n🍽 ${name}`,
+  }),
+});
   alert(editId ? "메뉴 수정 완료 🍽" : "메뉴 등록 완료 🍽");   
       setName("");
       setCategory("");

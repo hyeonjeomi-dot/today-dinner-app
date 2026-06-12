@@ -104,7 +104,20 @@ export default function ReviewPage() {
       alert("후기 저장 실패 😢");
       return;
     }
-
+await fetch("/api/discord", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    message:
+      `✍️ 새 리뷰 등록\n` +
+      `🍽 ${hyunjungChoice.menu_name}\n` +
+      `👤 ${person}\n` +
+      `⭐ ${rating}\n` +
+      `💬 ${content}`,
+  }),
+});
     alert("후기 저장 완료 ✨");
 
 setContent("");

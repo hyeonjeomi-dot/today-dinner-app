@@ -92,7 +92,18 @@ setReviews(reviewData || []);
         console.log(updateError);
         return;
       }
-
+await fetch("/api/discord", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    message:
+      `🔄 오늘 메뉴 변경\n` +
+      `👤 ${person}\n` +
+      `🥘 ${menu.name}`,
+  }),
+});
       alert(`${person}이의 저녁 선택을 변경했어요 🍽`);
       return;
     }
@@ -111,6 +122,18 @@ setReviews(reviewData || []);
       alert("선택 저장 실패 😢");
       console.log(insertError);
     } else {
+     await fetch("/api/discord", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    message:
+      `🍽 오늘 메뉴 선택\n` +
+      `👤 ${person}\n` +
+      `🥘 ${menu.name}`,
+  }),
+});
       alert(`${person}이의 오늘 저녁 선택 완료 🍽`);
     }
   };
@@ -293,13 +316,13 @@ setReviews(reviewData || []);
               <h2 style={sectionTitleStyle}>📝 설명</h2>
               <p style={contentTextStyle}>{menu.description || "등록된 설명이 없어요."}</p>
             </section>
-
-            <section style={boxStyle}>
+<section style={boxStyle}>
   <h2 style={sectionTitleStyle}>👩‍🍳 레시피</h2>
   <p style={contentTextStyle}>
     {menu.recipe || "등록된 레시피가 없어요."}
   </p>
 </section>
+            
           </div>
 
           {menu.youtube_url && (
