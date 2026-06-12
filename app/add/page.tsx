@@ -19,6 +19,7 @@ console.log("editId:", editId);
   const [ingredients, setIngredients] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [description, setDescription] = useState("");
+  const [recipe, setRecipe] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
 const [zoom, setZoom] = useState(1);
@@ -42,6 +43,7 @@ const [showCropper, setShowCropper] = useState(false);
       setIngredients(data.ingredients || "");
       setYoutubeUrl(data.youtube_url || "");
       setDescription(data.description || "");
+      setRecipe(data.recipe || "");
     }
   };
 
@@ -131,6 +133,7 @@ const payload = {
   ingredients,
   youtube_url: youtubeUrl,
   description,
+  recipe,
   ...(imageUrl ? { image_url: imageUrl } : {}),
 };
 
@@ -170,7 +173,8 @@ if (editId) {
       setIngredients("");
       setYoutubeUrl("");
       setDescription("");
-      setImageFile(null);
+setRecipe("");
+setImageFile(null);
     }
   };
 
@@ -287,9 +291,17 @@ if (editId) {
         <input placeholder="https://youtube.com/..." style={inputStyle} value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} />
 
         <p style={{ marginTop: "20px" }}>설명</p>
-        <textarea placeholder="맛 설명이나 메모" style={textareaStyle} value={description} onChange={(e) => setDescription(e.target.value)} />
+<textarea placeholder="맛 설명이나 메모" style={textareaStyle} value={description} onChange={(e) => setDescription(e.target.value)} />
 
-        <button onClick={handleAddMenu} style={buttonStyle}>
+<p style={{ marginTop: "20px" }}>레시피</p>
+<textarea
+  placeholder={"예: 1. 재료 손질하기\n2. 볶기\n3. 끓이기"}
+  style={textareaStyle}
+  value={recipe}
+  onChange={(e) => setRecipe(e.target.value)}
+/>
+
+<button onClick={handleAddMenu} style={buttonStyle}>
           {editId ? "메뉴 수정하기" : "메뉴 등록하기"}
         </button>
       </div>

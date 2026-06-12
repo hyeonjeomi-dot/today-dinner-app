@@ -13,6 +13,7 @@ type Menu = {
   ingredients: string;
   youtube_url: string;
   description: string;
+  recipe: string;
   image_url: string;
 };
 
@@ -292,6 +293,13 @@ setReviews(reviewData || []);
               <h2 style={sectionTitleStyle}>📝 설명</h2>
               <p style={contentTextStyle}>{menu.description || "등록된 설명이 없어요."}</p>
             </section>
+
+            <section style={boxStyle}>
+  <h2 style={sectionTitleStyle}>👩‍🍳 레시피</h2>
+  <p style={contentTextStyle}>
+    {menu.recipe || "등록된 레시피가 없어요."}
+  </p>
+</section>
           </div>
 
           {menu.youtube_url && (
