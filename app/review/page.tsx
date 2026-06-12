@@ -110,12 +110,7 @@ await fetch("/api/discord", {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    message:
-      `✍️ 새 리뷰 등록\n` +
-      `🍽 ${hyunjungChoice.menu_name}\n` +
-      `👤 ${person}\n` +
-      `⭐ ${rating}\n` +
-      `💬 ${content}`,
+    message: `✍️ 리뷰작성! / ${person} / ${hyunjungChoice.menu_name} / ⭐${rating} / ${content}`,
   }),
 });
     alert("후기 저장 완료 ✨");

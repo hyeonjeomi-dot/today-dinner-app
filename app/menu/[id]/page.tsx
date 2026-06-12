@@ -98,10 +98,7 @@ await fetch("/api/discord", {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    message:
-      `🔄 오늘 메뉴 변경\n` +
-      `👤 ${person}\n` +
-      `🥘 ${menu.name}`,
+    message: `🔄 메뉴변경! / ${person} / ${menu.name}`,
   }),
 });
       alert(`${person}이의 저녁 선택을 변경했어요 🍽`);
@@ -128,10 +125,7 @@ await fetch("/api/discord", {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    message:
-      `🍽 오늘 메뉴 선택\n` +
-      `👤 ${person}\n` +
-      `🥘 ${menu.name}`,
+   message: `🍽 메뉴선택! / ${person} / ${menu.name}`,
   }),
 });
       alert(`${person}이의 오늘 저녁 선택 완료 🍽`);
